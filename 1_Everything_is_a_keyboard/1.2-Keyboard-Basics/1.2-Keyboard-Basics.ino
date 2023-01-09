@@ -20,8 +20,8 @@ void setup() {
   // Red LED will flash to let you know something is wrong.
   pinMode(A0, INPUT_PULLUP);
   while(digitalRead(A0) == HIGH){
-    digitalWrite(LED_BUILTIN, HIGH); delay(300);
-    digitalWrite(LED_BUILTIN, LOW);  delay(50);
+    digitalWrite(LED_BUILTIN, HIGH); delay(400);
+    digitalWrite(LED_BUILTIN, LOW);  delay(200);
   }
 
   // Setup push button to default as pulled high
