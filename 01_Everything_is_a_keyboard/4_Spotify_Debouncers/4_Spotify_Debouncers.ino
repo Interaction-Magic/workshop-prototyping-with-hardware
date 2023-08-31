@@ -18,9 +18,6 @@ Bounce skip_forwards = Bounce();
 
 void setup() {
 
-	// Start Arduino acting as a keyboard
-	Keyboard.begin();
-
 	// ⚠️ Safety stop!
 	// Program will not begin when pin A0 connected to GND
 	pinMode(A0, INPUT_PULLUP);
@@ -32,6 +29,9 @@ void setup() {
 	skip_backwards.attach(A3,INPUT_PULLUP);
 	play_pause.attach(A4,INPUT_PULLUP);
 	skip_forwards.attach(A5,INPUT_PULLUP);
+	
+	// Start Arduino acting as a keyboard
+	Keyboard.begin();
 
 }
 

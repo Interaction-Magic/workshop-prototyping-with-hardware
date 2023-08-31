@@ -26,9 +26,6 @@ keyboard_button buttons[num_buttons] = {
 
 void setup() {
 
-	// Start Arduino acting as a keyboard
-	Keyboard.begin();
-
 	// ⚠️ Safety stop!
 	// Program will not begin when pin A0 connected to GND
 	pinMode(A0, INPUT_PULLUP);
@@ -40,6 +37,9 @@ void setup() {
 	for(int i=0; i<num_buttons; i++){
 		pinMode(buttons[i].pin, INPUT_PULLUP);
 	}
+
+	// Start Arduino acting as a keyboard
+	Keyboard.begin();
 
 }
 

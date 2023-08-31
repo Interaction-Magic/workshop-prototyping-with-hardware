@@ -25,12 +25,6 @@ bool was_triggered = true;  // board to level before triggering first time
 
 void setup() {
 
-	// Start Arduino acting as a keyboard
-	Keyboard.begin();
-
-	// Initialise the accelerometer
-	lsm6ds33.begin_I2C();
-
 	// ⚠️ Safety stop!
 	// Program will not begin when pin A0 connected to GND
 	pinMode(A0, INPUT_PULLUP);
@@ -38,6 +32,12 @@ void setup() {
 		delay(500);
 	}
 
+	// Initialise the accelerometer
+	lsm6ds33.begin_I2C();
+
+	// Start Arduino acting as a keyboard
+	Keyboard.begin();
+	
 }
 
 void loop() {
