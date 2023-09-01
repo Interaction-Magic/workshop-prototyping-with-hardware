@@ -31,9 +31,9 @@ void setup() {
 	// Wait until we have BT connection to proceed
 	Serial.print("Waiting to connect");
 	uint8_t i=0;
-	while(! Keyboard.isConnected()) { 
+	while(!Keyboard.isConnected()){ 
 		Serial.print(".");
-    delay(100);
+		delay(100);
 	};
 
 	// Give it a chance to connect

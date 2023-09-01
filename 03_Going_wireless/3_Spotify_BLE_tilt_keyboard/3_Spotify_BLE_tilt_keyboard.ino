@@ -25,72 +25,68 @@ bool was_triggered = true;  // board to level before triggering first time
 
 void setup() {
 
-  // Begin Serial for debugging
-  Serial.begin(9600);  
+	// ⚠️ Safety stop!
+	// Program will not begin when pin A0 connected to GND
+	pinMode(A0, INPUT_PULLUP);
+	while(digitalRead(A0) == LOW){
+		delay(500);
+	}
 
-  // Start Arduino acting as a keyboard, name defines the Bluetooth device name
-  Keyboard.begin("SpotifyKeys");
+	// Begin Serial for debugging
+	Serial.begin(9600);  
 
-  // Wait until we have BT connection to proceed
-  Serial.print("Waiting to connect");
-  uint8_t i=0;
-  while(! Keyboard.isConnected()) { 
-    Serial.print("."); delay(100);
-    if((++i)>50) {
-      i=0; Serial.println();
-    }
-  };
-  delay(1000);//just in case
-  Serial.println("\nBT Connected!");
+	// Start Arduino acting as a keyboard, name defines the Bluetooth device name
+	Keyboard.begin("SpotifyKeys");
 
+	// Wait until we have BT connection to proceed
+	Serial.print("Waiting to connect");
+	uint8_t i=0;
+	while(!Keyboard.isConnected()){ 
+		Serial.print(".");
+		delay(100);
+	};
 
-  // Initialise the accelerometer
-  lsm6ds33.begin_I2C();
-  
-  // ⚠️ Safety stop!
-  // Unless pin A0 is connected to GND, the program will not run
-  // Red LED will flash to let you know something is wrong.
-  pinMode(A0, INPUT_PULLUP);
-  while(digitalRead(A0) == HIGH){
-    digitalWrite(LED_BUILTIN, HIGH); delay(400);
-    digitalWrite(LED_BUILTIN, LOW);  delay(200);
-  }
+	delay(1000);//just in case
+	Serial.println("BT Connected!");
+
+	// Initialise the accelerometer
+	lsm6ds33.begin_I2C();
 
 }
 
 void loop() {
 
-  // Fetch the data from the accelerometer and save current X/Y/Z values
-  sensors_event_t accel, gyro, temp;
-  lsm6ds33.getEvent(&accel, &gyro, &temp);
-  accel_y = accel.acceleration.y;
+	// Fetch the data from the accelerometer and save current X/Y/Z values
+	sensors_event_t accel, gyro, temp;
+	lsm6ds33.getEvent(&accel, &gyro, &temp);
+	accel_y = accel.acceleration.y;
 
-  // If already triggered and now back below the threshold for resetting
-  if(was_triggered && (abs(accel_y) <= threshold_reset)){
-      is_reset = true;
-      was_triggered = false;
-  }
+	// If already triggered and now back below the threshold for resetting
+	if(was_triggered && (abs(accel_y) <= threshold_reset)){
+		is_reset = true;
+		was_triggered = false;
+	}
 
-  // We have reset, but not triggered again yet
-  if(is_reset && !was_triggered){
+	// We have reset, but not triggered again yet
+	if(is_reset && !was_triggered){
 
-    // Passed threshold for positive direction trigger
-    if(accel_y >= threshold_trigger){
+		// Passed threshold for positive direction trigger
+		if(accel_y >= threshold_trigger){
 
-      was_triggered = true;
-      Keyboard.press(KEY_LEFT_CTRL);
-      Keyboard.press(KEY_RIGHT_ARROW);
-      Keyboard.releaseAll();
+			was_triggered = true;
+			Keyboard.press(KEY_LEFT_CTRL);
+			Keyboard.press(KEY_RIGHT_ARROW);
+			Keyboard.releaseAll();
 
-    // Passed threshold for negative direction trigger
-    }else if(accel_y <= -threshold_trigger){
+		// Passed threshold for negative direction trigger
+		}else if(accel_y <= -threshold_trigger){
 
-      was_triggered = true;
-      Keyboard.press(KEY_LEFT_CTRL);
-      Keyboard.press(KEY_LEFT_ARROW);
-      Keyboard.releaseAll();
+			was_triggered = true;
+			Keyboard.press(KEY_LEFT_CTRL);
+			Keyboard.press(KEY_LEFT_ARROW);
+			Keyboard.releaseAll();
 
-    }
+		}
 
-  }
+	}
 }
