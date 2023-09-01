@@ -32,3 +32,10 @@ Collection of useful links and resources from the workshops:
 + [CanIUse.com - Web Serial](https://caniuse.com/web-serial)
 + [Chrome device log](chrome://device-log/?refresh=2)
 + [List of USB IDs](http://www.linux-usb.org/usb.ids)
+
+### Day 3
+
++ [Battery measurement on Feather Sense](https://learn.adafruit.com/adafruit-feather-sense/power-management)
++ [BLE Mouse & Keyboard library](https://github.com/cyborg5/BLE52_Mouse_and_Keyboard)
+
+### Day 4
