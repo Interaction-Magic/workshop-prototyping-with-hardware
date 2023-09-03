@@ -2,7 +2,11 @@
 
 This repo contains all of the Arduino demo code for the workshops.
 
-HTML code is stored on [Glitch](https://glitch.com):
+## JS on Glitch
+
+From day 2 onwards, we'll use [Glitch](https://glitch.com) for the javascript parts of the course.
+
+Here are the links you'll need:
 
 + [Glitch - Intro to JS](https://glitch.com/edit/#!/workshop-js-intro)
 + [Glitch - Duckie challenge](https://glitch.com/edit/#!/duckie-challenge)
