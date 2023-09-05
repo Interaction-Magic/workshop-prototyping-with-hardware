@@ -9,7 +9,7 @@ From day 2 onwards, we'll use [Glitch](https://glitch.com) for the javascript pa
 Here are the links you'll need:
 
 + [Glitch - Intro to JS](https://glitch.com/edit/#!/workshop-js-intro)
-+ [Glitch - Duckie challenge](https://glitch.com/edit/#!/duckie-challenge)
++ [Glitch - Duckie challenge](https://glitch.com/edit/#!/duckie-challenge) ([Completed example](https://glitch.com/edit/#!/duckie-challenge-complete))
 + [Glitch - Rolling road](https://glitch.com/edit/#!/driving-reel-switcher)
 + [Glitch - Using Web Serial](https://glitch.com/edit/#!/using-web-serial)
 
