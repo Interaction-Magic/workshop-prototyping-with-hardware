@@ -4,6 +4,9 @@
  * https://interactionmagic.com
  */
 
+// Include this for Serial to work. You do NOT need to install any libraries for this
+#include <Adafruit_TinyUSB.h>
+
 // PDM = Pulse Density Modulation microphone
 // More info here: https://en.wikipedia.org/wiki/Pulse-density_modulation
 #include <PDM.h>

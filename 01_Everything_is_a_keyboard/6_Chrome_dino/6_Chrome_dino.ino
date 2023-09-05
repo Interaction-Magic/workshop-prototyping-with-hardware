@@ -4,8 +4,8 @@
  * https://interactionmagic.com
  */
 
-// Keyboard library
-#include <Keyboard.h>
+// Include this for Serial to work. You do NOT need to install any libraries for this
+#include <Adafruit_TinyUSB.h>
 
 // Include Bounce2 library by Thomas O Fredericks
 #include <Bounce2.h>

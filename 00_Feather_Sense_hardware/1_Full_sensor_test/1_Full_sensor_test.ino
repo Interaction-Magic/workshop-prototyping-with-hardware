@@ -2,6 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 //
+
+// Include this for Serial to work. You do NOT need to install any libraries for this
+#include <Adafruit_TinyUSB.h>
+
 #include <Adafruit_APDS9960.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_LIS3MDL.h>
