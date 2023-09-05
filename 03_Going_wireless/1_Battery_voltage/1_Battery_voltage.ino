@@ -7,7 +7,7 @@
 // For Serial
 #include <Adafruit_TinyUSB.h> 
 
-// Create variables for pins
+// Create variable for battery pin
 const int battery_pin = A6;
 
 void setup() {
@@ -16,7 +16,10 @@ void setup() {
 
 void loop() {
 
+	// Read in battery level
 	float battery_voltage = analogRead(battery_pin);
+
+	// Scale to correct voltage based on Feather Sense's voltage divider
 	battery_voltage = (battery_voltage*7.2)/1024;
 
 	Serial.print(battery_voltage);
