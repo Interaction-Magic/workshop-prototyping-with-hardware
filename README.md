@@ -12,6 +12,7 @@ Here are the links you'll need:
 + [Glitch - Duckie challenge](https://glitch.com/edit/#!/duckie-challenge) ([Completed example](https://glitch.com/edit/#!/duckie-challenge-complete))
 + [Glitch - Rolling road](https://glitch.com/edit/#!/driving-reel-switcher)
 + [Glitch - Using Web Serial](https://glitch.com/edit/#!/using-web-serial)
++ [Glitch - Using Web Bluetooth](https://glitch.com/edit/#!/using-web-ble)
 
 ## Links and sources
 
@@ -44,4 +45,10 @@ Collection of useful links and resources from the workshops:
 
 ### Day 4
 
-+ todo...
++ [CanIUse.com Web Bluetooth](https://caniuse.com/web-bluetooth)
++ [Bluetooth Bell demo](https://tinyurl.com/bluetooth-bell)
++ [Intro to BLE and GATT](https://learn.adafruit.com/introduction-to-bluetooth-low-energy/gatt)
++ [Chrome blog, Web Bluetooth and JS](https://developer.chrome.com/articles/bluetooth/)
++ [Adafruit nrf52 Bluefruit learning guide](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide)
++ [Apple BLE advertising guidelines](https://developer.apple.com/library/archive/qa/qa1931/_index.html)
++ [Casio Watch prototyper](https://casio-watch.netlify.app/)
