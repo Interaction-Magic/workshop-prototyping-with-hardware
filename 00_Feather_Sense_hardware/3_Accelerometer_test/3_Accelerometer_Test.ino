@@ -8,9 +8,9 @@
 #include <Adafruit_TinyUSB.h>
 
 // Install the library "Adafruit LSM6DS" by Adafruit
-#include <Adafruit_LSM6DS33.h>
+#include <Adafruit_LSM6DS3TRC.h>
 
-Adafruit_LSM6DS33 lsm6ds33;       // Reference to accelerometer chip 
+Adafruit_LSM6DS3TRC lsm6ds3trc;   // Reference to accelerometer chip 
 float accel_x, accel_y, accel_z;  // Variables for acceleration in X/Y/Z
 
 void setup() {
@@ -19,7 +19,7 @@ void setup() {
 	Serial.begin(115200);
 
 	// Initialise the accelerometer
-	lsm6ds33.begin_I2C();
+	lsm6ds3trc.begin_I2C();
 
 }
 
@@ -27,7 +27,7 @@ void loop() {
 
 	// Fetch the data from the accelerometer and save current X/Y/Z values
 	sensors_event_t accel, gyro, temp;
-	lsm6ds33.getEvent(&accel, &gyro, &temp);
+	lsm6ds3trc.getEvent(&accel, &gyro, &temp);
 	accel_x = accel.acceleration.x;
 	accel_y = accel.acceleration.y;
 	accel_z = accel.acceleration.z;
