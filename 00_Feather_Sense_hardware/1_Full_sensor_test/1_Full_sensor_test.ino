@@ -9,16 +9,16 @@
 #include <Adafruit_APDS9960.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_LIS3MDL.h>
-#include <Adafruit_LSM6DS33.h>
+#include <Adafruit_LSM6DS3TRC.h>
 #include <Adafruit_SHT31.h>
 #include <Adafruit_Sensor.h>
 #include <PDM.h>
 
-Adafruit_APDS9960 apds9960; // proximity, light, color, gesture
-Adafruit_BMP280 bmp280;     // temperautre, barometric pressure
-Adafruit_LIS3MDL lis3mdl;   // magnetometer
-Adafruit_LSM6DS33 lsm6ds33; // accelerometer, gyroscope
-Adafruit_SHT31 sht30;       // humidity
+Adafruit_APDS9960 apds9960;     // proximity, light, color, gesture
+Adafruit_BMP280 bmp280;         // temperautre, barometric pressure
+Adafruit_LIS3MDL lis3mdl;   	  // magnetometer
+Adafruit_LSM6DS3TRC lsm6ds3trc; // accelerometer, gyroscope
+Adafruit_SHT31 sht30;           // humidity
 
 uint8_t proximity;
 uint16_t r, g, b, c;
@@ -44,7 +44,7 @@ void setup(void) {
 	apds9960.enableColor(true);
 	bmp280.begin();
 	lis3mdl.begin_I2C();
-	lsm6ds33.begin_I2C();
+	lsm6ds3trc.begin_I2C();
 	sht30.begin();
 	PDM.onReceive(onPDMdata);
 	PDM.begin(1, 16000);
@@ -69,7 +69,7 @@ void loop(void) {
 	sensors_event_t accel;
 	sensors_event_t gyro;
 	sensors_event_t temp;
-	lsm6ds33.getEvent(&accel, &gyro, &temp);
+	lsm6ds3trc.getEvent(&accel, &gyro, &temp);
 	accel_x = accel.acceleration.x;
 	accel_y = accel.acceleration.y;
 	accel_z = accel.acceleration.z;
