@@ -44,6 +44,7 @@ void loop() {
 
 	// Check if buttons were pushed
 	if(skip_backwards.rose()) { 
+		// On a Mac use KEY_LEFT_GUI instead of KEY_LEFT_CTRL
 		Keyboard.press(KEY_LEFT_CTRL);
 		Keyboard.press(KEY_LEFT_ARROW);
 		Keyboard.releaseAll();
@@ -52,6 +53,7 @@ void loop() {
 		Keyboard.write(' ');
 	}
 	if(skip_forwards.rose()) { 
+		// On a Mac use KEY_LEFT_GUI instead of KEY_LEFT_CTRL
 		Keyboard.press(KEY_LEFT_CTRL);
 		Keyboard.press(KEY_RIGHT_ARROW);
 		Keyboard.releaseAll();
