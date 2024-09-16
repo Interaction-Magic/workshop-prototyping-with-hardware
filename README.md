@@ -52,3 +52,13 @@ Collection of useful links and resources from the workshops:
 + [Adafruit nrf52 Bluefruit learning guide](https://learn.adafruit.com/bluefruit-nrf52-feather-learning-guide)
 + [Apple BLE advertising guidelines](https://developer.apple.com/library/archive/qa/qa1931/_index.html)
 + [Casio Watch prototyper](https://casio-watch.netlify.app/)
+
+## Debugging the Adafruit Feather Sense nRF52840
+
+Common issues:
+
+1. Using the older IDE
+
+2. Deleting Arduino15
+
+3. Accelerometer chip updated.
