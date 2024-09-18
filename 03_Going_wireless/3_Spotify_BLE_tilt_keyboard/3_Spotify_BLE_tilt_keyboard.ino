@@ -73,6 +73,7 @@ void loop() {
 		if(accel_y >= threshold_trigger){
 
 			was_triggered = true;
+			// On a Mac use KEY_LEFT_GUI instead of KEY_LEFT_CTRL
 			Keyboard.press(KEY_LEFT_CTRL);
 			Keyboard.press(KEY_RIGHT_ARROW);
 			Keyboard.releaseAll();
@@ -81,6 +82,7 @@ void loop() {
 		}else if(accel_y <= -threshold_trigger){
 
 			was_triggered = true;
+			// On a Mac use KEY_LEFT_GUI instead of KEY_LEFT_CTRL
 			Keyboard.press(KEY_LEFT_CTRL);
 			Keyboard.press(KEY_LEFT_ARROW);
 			Keyboard.releaseAll();
