@@ -57,8 +57,10 @@ Collection of useful links and resources from the workshops:
 
 Common issues:
 
-1. Using the older IDE
+1. Using the older IDE: https://forum.seeedstudio.com/t/unable-to-use-latest-arduino-ide-with-nrf52840/269515/10
 
 2. Deleting Arduino15
 
 3. Accelerometer chip updated.
+
+4. Another one
