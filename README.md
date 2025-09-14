@@ -13,6 +13,8 @@ You can access all the links in [the collection here](https://codepen.io/collect
 + [2/ Sending to Arduino](https://codepen.io/interactionmagic/pen/OPyedKm)
 + [3/ Sending any RGB colour](https://codepen.io/interactionmagic/pen/KwdjEpB)
 + [4/ Talking over Bluetooth](https://codepen.io/interactionmagic/pen/EaVBMOP) 
++ [5/ Bluetooth - all messages](https://codepen.io/interactionmagic/pen/ogjrOZp)
++ [6/ Serial - all messages](https://codepen.io/interactionmagic/pen/MYaMRmy)
 
 ## Links and sources
 
