@@ -1,0 +1,48 @@
+/*
+ * ©️2023 Interaction Magic - George Cave
+ * Workshop: Prototyping with hardware and the web
+ * https://interactionmagic.com
+ */
+
+// For Serial
+#include <Adafruit_TinyUSB.h> 
+
+// Include Adafruit NeoPixel library
+#include <Adafruit_NeoPixel.h>
+
+// RGB LED bits
+const int rgb_pin = 8; 	// Pin for RGB LED
+const int num_leds = 1; // Number of RGB LEDs we have
+Adafruit_NeoPixel strip(num_leds, rgb_pin, NEO_GRB + NEO_KHZ800);
+
+void setup() {
+
+	// Setup RGB LED and make LED white
+	strip.begin();
+	strip.setPixelColor(0, 0xFFFFFF);
+	strip.setBrightness(127); // Set half brightness
+	strip.show();
+
+	// Open the Serial port
+	Serial.begin(9600);
+	
+}
+
+void loop() {
+
+	while(Serial.available()) {
+		if(Serial.read() == '#'){
+			// If we get a #, read in the next 6 characters of hex colour
+
+			char colour[7] = {0};  // Create space for 6 chars + null terminator
+			int bytesRead = Serial.readBytes(colour, 6);  // Read next 6 chars
+
+			// Convert string into a colour for the pixel
+			uint32_t hexColour = strtol(colour, NULL, 16);
+
+			// Set the colour
+			strip.setPixelColor(0, hexColour);
+			strip.show();
+		}
+	}
+}

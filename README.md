@@ -2,17 +2,17 @@
 
 This repo contains all of the Arduino demo code for the workshops.
 
-## JS on Glitch
+## Codepen for JS/HTML
 
-From day 2 onwards, we'll use [Glitch](https://glitch.com) for the javascript parts of the course.
+For the `Remote control` module, we'll use [Codepen](https://codepen.io) for the Javascript parts of the course.
 
-Here are the links you'll need:
+You can access all the links in [the collection here](https://codepen.io/collection/ZQOrxg). Here are the direct links to each demo:
 
-+ [Glitch - Intro to JS](https://glitch.com/edit/#!/workshop-js-intro)
-+ [Glitch - Duckie challenge](https://glitch.com/edit/#!/duckie-challenge) ([Completed example](https://glitch.com/edit/#!/duckie-challenge-complete))
-+ [Glitch - Rolling road](https://glitch.com/edit/#!/driving-reel-switcher)
-+ [Glitch - Using Web Serial](https://glitch.com/edit/#!/using-web-serial)
-+ [Glitch - Using Web Bluetooth](https://glitch.com/edit/#!/using-web-ble)
++ [0/ Javascript intro](https://codepen.io/interactionmagic/pen/ogjrObG)
++ [1/ Reading from Arduino](https://codepen.io/interactionmagic/pen/wBKLNEJ)
++ [2/ Sending to Arduino](https://codepen.io/interactionmagic/pen/OPyedKm)
++ [3/ Sending any RGB colour](https://codepen.io/interactionmagic/pen/KwdjEpB)
++ [4/ Talking over Bluetooth](https://codepen.io/interactionmagic/pen/EaVBMOP) 
 
 ## Links and sources
 
