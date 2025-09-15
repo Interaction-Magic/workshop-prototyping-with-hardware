@@ -4,8 +4,9 @@
  * https://interactionmagic.com
  */
 
-// Include this for Serial to work. You do NOT need to install any libraries for this
-#include <Adafruit_TinyUSB.h>
+// Install this library manually from here:
+// https://github.com/cyborg5/TinyUSB_Mouse_and_Keyboard
+#include <TinyUSB_Mouse_and_Keyboard.h>
 
 // Include Bounce2 library by Thomas O Fredericks
 #include <Bounce2.h>
