@@ -26,10 +26,8 @@ void loop() {
 
 	// You can uncomment the code below once you've set the min and max levels correctly
 
-	// Constrain reading so that it doesn't exceed bounds
+	// Constrain and map reading to 0 -> 100
 	// stretch_reading = constrain(stretch_reading, min_level, max_level);
-
-	// Map the stretch sensor to 0 -> 100 range
 	// stretch_reading = map(stretch_reading, min_level, max_level, 0, 100);
 
 	Serial.println(stretch_reading);
