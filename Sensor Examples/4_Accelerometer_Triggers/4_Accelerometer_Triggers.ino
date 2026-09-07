@@ -16,8 +16,8 @@ float accel_y;              	  // Variables for acceleration
 const float threshold_reset = 2;
 const float threshold_trigger = 7;
 
-bool is_reset = false;      // This false & true combo means we wait for the
-bool was_triggered = true;  // board to level before triggering first time
+bool is_reset = false;  
+bool was_triggered = true;
 
 void setup() {
 
