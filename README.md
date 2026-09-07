@@ -2,9 +2,16 @@
 
 This repo contains all of the Arduino demo code for the workshops.
 
+There are four modules:
+
+1. Everything is a keyboard
+2. Going wireless
+3. Web control panels
+4. Organic motion
+
 ## Codepen for JS/HTML
 
-For the `Remote control` module, we'll use [Codepen](https://codepen.io) for the Javascript parts of the course.
+For the `Web control panels` module, we'll use [Codepen](https://codepen.io) for the Javascript parts of the course.
 
 You can access all the links in [the collection here](https://codepen.io/collection/ZQOrxg). Here are the direct links to each demo:
 
