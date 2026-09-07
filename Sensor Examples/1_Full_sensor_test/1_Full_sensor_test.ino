@@ -6,6 +6,13 @@
 // Include this for Serial to work. You do NOT need to install any libraries for this
 #include <Adafruit_TinyUSB.h>
 
+// To make these sensors work you need to install lots of libraries.
+// Search for and install all of these (and any dependencies it asks for):
+// Adafruit APDS9960
+// Adafruit BMP280
+// Adafruit LIS3MDL
+// Adafruit LSM6DS
+// Adafruit SHT31
 #include <Adafruit_APDS9960.h>
 #include <Adafruit_BMP280.h>
 #include <Adafruit_LIS3MDL.h>
