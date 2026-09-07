@@ -81,4 +81,5 @@ Collection of useful links and resources from the workshops:
 ## Debugging problems
 
 + [Using the older IDE](https://forum.seeedstudio.com/t/unable-to-use-latest-arduino-ide-with-nrf52840/269515/10)
-+ Accelerometer chip changed! -> from `#include <Adafruit_LSM6DS33.h>` to `#include <Adafruit_LSM6DS3TRC.h>`
++ Accelerometer chip changed! -> from `#include <Adafruit_LSM6DS33.h>` (old) to `#include <Adafruit_LSM6DS3TRC.h>` (new)
++ [Microphone orientation flipped](https://forums.adafruit.com/viewtopic.php?p=1094640#p1094640)
