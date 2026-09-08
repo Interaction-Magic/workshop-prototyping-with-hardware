@@ -23,6 +23,19 @@ void setup() {
 			delay(500);
 		}
 	}
+
+  // Decrease sensitivity a little - default is 0x2F (32x) per datasheet
+  // Uncomment one of these:
+
+  //cap.writeRegister(CAP1188_SENSITIVITY, 0x3F);  // 16x sensitivity
+  //cap.writeRegister(CAP1188_SENSITIVITY, 0x4F);  // 8x  sensitivity
+  //cap.writeRegister(CAP1188_SENSITIVITY, 0x5F);  // 4x  sensitivity
+  cap.writeRegister(CAP1188_SENSITIVITY, 0x6F);    // 2x  sensitivity
+  //cap.writeRegister(CAP1188_SENSITIVITY, 0x7F);  // 1x  sensitivity
+
+  // Write out sensitivity
+  Serial.print("Sensitivity: 0x");
+  Serial.println(cap.readRegister(CAP1188_SENSITIVITY), HEX);
 }
 
 void loop() {
