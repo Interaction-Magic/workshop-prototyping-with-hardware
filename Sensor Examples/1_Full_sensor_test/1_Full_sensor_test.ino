@@ -41,7 +41,7 @@ short sampleBuffer[256];  // buffer to read samples into, each sample is 16-bits
 volatile int samplesRead; // number of samples read
 
 void setup(void) {
-	Serial.begin(115200);
+	Serial.begin(9600);
 	// while (!Serial) delay(10);
 	Serial.println("Feather Sense Sensor Demo");
 

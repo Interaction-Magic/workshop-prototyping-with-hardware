@@ -16,7 +16,7 @@ float accel_x, accel_y, accel_z;  // Variables for acceleration in X/Y/Z
 void setup() {
 
 	// Open the Serial port
-	Serial.begin(115200);
+	Serial.begin(9600);
 
 	// Initialise the accelerometer
 	lsm6ds3trc.begin_I2C();
