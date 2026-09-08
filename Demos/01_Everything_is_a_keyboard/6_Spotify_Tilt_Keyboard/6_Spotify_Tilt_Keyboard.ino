@@ -1,5 +1,5 @@
 /*
- * ©️2023 Interaction Magic - George Cave
+ * ©️2026 Interaction Magic - George Cave
  * Workshop: Prototyping with hardware and the web
  * https://interactionmagic.com
  */
@@ -20,8 +20,7 @@ float accel_y;                  // Variables for acceleration
 const float threshold_reset = 2;
 const float threshold_trigger = 7;
 
-bool is_reset = false;      // This false & true combo means we wait for the
-bool was_triggered = true;  // board to level before triggering first time
+bool was_triggered = true;  // Wait for board to level before triggering first time
 
 void setup() {
 
@@ -49,12 +48,11 @@ void loop() {
 
 	// If already triggered and now back below the threshold for resetting
 	if(was_triggered && (abs(accel_y) <= threshold_reset)){
-		is_reset = true;
 		was_triggered = false;
 	}
 
 	// We have reset, but not triggered again yet
-	if(is_reset && !was_triggered){
+	if(!was_triggered){
 
 		// Passed threshold for positive direction trigger
 		if(accel_y >= threshold_trigger){

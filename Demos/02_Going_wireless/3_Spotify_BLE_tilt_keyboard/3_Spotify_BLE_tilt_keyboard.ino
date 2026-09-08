@@ -20,8 +20,7 @@ float accel_y;              	  // Variables for acceleration
 const float threshold_reset = 2;
 const float threshold_trigger = 7;
 
-bool is_reset = false; 
-bool was_triggered = true;
+bool was_triggered = true;  // Wait for board to level before triggering first time
 
 void setup() {
 
@@ -62,12 +61,11 @@ void loop() {
 
 	// If already triggered and now back below the threshold for resetting
 	if(was_triggered && (abs(accel_y) <= threshold_reset)){
-		is_reset = true;
 		was_triggered = false;
 	}
 
 	// We have reset, but not triggered again yet
-	if(is_reset && !was_triggered){
+	if(!was_triggered){
 
 		// Passed threshold for positive direction trigger
 		if(accel_y >= threshold_trigger){
