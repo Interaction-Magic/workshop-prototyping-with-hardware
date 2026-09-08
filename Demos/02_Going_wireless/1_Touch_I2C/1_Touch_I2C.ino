@@ -1,5 +1,5 @@
 /*
- * ©️2023 Interaction Magic - George Cave
+ * ©️2026 Interaction Magic - George Cave
  * Workshop: Prototyping with hardware and the web
  * https://interactionmagic.com
  */
@@ -24,18 +24,14 @@ void setup() {
 		}
 	}
 
-  // Decrease sensitivity a little - default is 0x2F (32x) per datasheet
-  // Uncomment one of these:
+  // Uncomment only one line below to change sensitivity. Default = max (32x)
 
-  //cap.writeRegister(CAP1188_SENSITIVITY, 0x3F);  // 16x sensitivity
-  //cap.writeRegister(CAP1188_SENSITIVITY, 0x4F);  // 8x  sensitivity
-  //cap.writeRegister(CAP1188_SENSITIVITY, 0x5F);  // 4x  sensitivity
-  cap.writeRegister(CAP1188_SENSITIVITY, 0x6F);    // 2x  sensitivity
-  //cap.writeRegister(CAP1188_SENSITIVITY, 0x7F);  // 1x  sensitivity
-
-  // Write out sensitivity
-  Serial.print("Sensitivity: 0x");
-  Serial.println(cap.readRegister(CAP1188_SENSITIVITY), HEX);
+  cap.writeRegister(0x1F, 0x2F);    // 32x sensitivity (default)
+  //cap.writeRegister(0x1F, 0x3F);  // 16x sensitivity
+  //cap.writeRegister(0x1F, 0x4F);  // 8x  sensitivity
+  //cap.writeRegister(0x1F, 0x5F);  // 4x  sensitivity
+  //cap.writeRegister(0x1F, 0x6F);  // 2x  sensitivity
+  //cap.writeRegister(0x1F, 0x7F);  // 1x  sensitivity
 }
 
 void loop() {
