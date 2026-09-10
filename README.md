@@ -24,6 +24,7 @@ You can access all the links in [the collection here](https://codepen.io/collect
 + [6/ Serial - all messages](https://codepen.io/interactionmagic/pen/MYaMRmy)
 + [7/ Controlling a servo](https://codepen.io/interactionmagic/pen/zxrONbO)
 + [8/ Reading organic input](https://codepen.io/interactionmagic/pen/WbrepOm)
++ [9/ Multiple Bluetooth devices](https://codepen.io/interactionmagic/pen/zxZBPLw?editors=1011)
 
 ## Links and sources
 
