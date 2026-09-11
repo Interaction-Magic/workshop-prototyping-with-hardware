@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LDR → LED relay</title>
+
+<!--
+  ============================================================================
+  SINGLE FILE. Everything is in here: markup, styles and script.
+
+  Serve it from a local server so Web Bluetooth is enabled:
+      python3 -m http.server 8000     →     http://localhost:8000
+
+  Boards advertise as:  microwave_sensor  and  microwave_receiver
+
+  REQUIREMENTS
+    - Chrome or Edge. Web Bluetooth does not exist in Safari or Firefox.
+    - Must run at the top level, not inside an editor's preview frame.
+  ============================================================================
+-->
+
+<style>
+:root {
+  --bg:      #14161a;
+  --panel:   #1d2027;
+  --line:    #2b2f39;
+  --text:    #e6e8ec;
+  --muted:   #878e9c;
+  --red:     #ff4d4d;
+  --green:   #35d07f;
+  --accent:  #6ba7ff;
+
+  /* Categorical series colours, stepped for this dark surface.
+     Validated: adjacent CVD ΔE 8.4, normal-vision ΔE 19.8, all ≥3:1 contrast. */
+  --series-1: #3987e5;   /* A0  blue   */
+  --series-2: #d95926;   /* A1  orange */
+  --series-3: #199e70;   /* A4  aqua   */
+  --series-4: #c98500;   /* A5  yellow */
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 24px 16px;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.wrap { max-width: 760px; margin: 0 auto; }
+
+h1 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.label { color: var(--muted); }
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: #262a33;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+button:hover { border-color: var(--accent); }
+
+input[type=number] {
+  font: inherit;
+  width: 56px;
+  color: var(--text);
+  background: #262a33;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+/* ---- status strip ---- */
+
+.checks { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+
+.check {
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  cursor: help;
+}
+.check.ok  { color: var(--green); border-color: rgba(53, 208, 127, .4); }
+.check.bad { color: var(--red);   border-color: rgba(255, 77, 77, .4); }
+
+/* ---- banner ---- */
+
+.banner {
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+  border: 1px solid;
+}
+.banner.warn {
+  background: rgba(255, 77, 77, .1);
+  border-color: rgba(255, 77, 77, .45);
+  color: #ffb3b3;
+}
+.banner.note {
+  background: rgba(107, 167, 255, .1);
+  border-color: rgba(107, 167, 255, .4);
+  color: #b9d4ff;
+}
+.banner code { font-size: 12px; opacity: .8; word-break: break-all; }
+
+/* ---- connection rows ---- */
+
+.boards { display: grid; gap: 8px; margin-bottom: 20px; }
+
+.board {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  flex-wrap: wrap;
+}
+.board .devname { color: var(--text); }
+.board .state { margin-left: auto; color: var(--muted); }
+
+.dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #4a4f5c;
+  flex: none;
+}
+.dot.live { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+/* ---- chart ---- */
+
+.chartwrap { position: relative; }
+#chart { display: block; width: 100%; height: 220px; }
+
+.chart-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.chart-head h2 { margin: 0; }
+.chart-head .spacer { margin-left: auto; }
+
+.legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12px;
+}
+.legend .item { display: flex; align-items: center; gap: 6px; }
+.legend .swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.legend .val {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+}
+
+.tip {
+  position: absolute;
+  pointer-events: none;
+  background: #0f1115;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+  display: none;
+  z-index: 5;
+}
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip .swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.tip b { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* ---- sensor tiles ---- */
+
+.sensors {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+@media (max-width: 560px) {
+  .sensors { grid-template-columns: repeat(2, 1fr); }
+}
+
+.tile {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  transition: border-color .12s;
+}
+.tile.on { border-color: var(--red); }
+
+.tile .name { color: var(--muted); font-size: 12px; }
+
+.tile .delta {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0 8px;
+}
+
+.pair { display: flex; gap: 6px; }
+
+.led { flex: 1; height: 6px; border-radius: 3px; background: #2b2f39; }
+.led.red.lit   { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+.led.green.lit { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+/* ---- manual control ---- */
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+@media (max-width: 560px) {
+  .manual-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.pairbtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px;
+  text-align: left;
+}
+.pairbtn .who { color: var(--muted); font-size: 12px; }
+.pairbtn .now { font-weight: 600; }
+.pairbtn.red   .now { color: var(--red); }
+.pairbtn.green .now { color: var(--green); }
+
+.manual-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.holdpill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.holdpill.active {
+  color: #ffd7a1;
+  border-color: rgba(201, 133, 0, .6);
+  background: rgba(201, 133, 0, .12);
+}
+
+/* ---- diagnostics + tests ---- */
+
+.tests {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* ---- log ---- */
+
+.logwrap {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.loghead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.log { height: 160px; overflow-y: auto; padding: 10px 12px; font-size: 12px; }
+.log div { color: var(--muted); }
+.log .in   { color: var(--accent); }
+.log .out  { color: var(--green); }
+.log .warn { color: var(--red); }
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <h1>LDR → LED relay</h1>
+
+  <!-- Filled in by the script. If this row stays empty, the script isn't running. -->
+  <div class="checks" id="checks"></div>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="boards">
+    <div class="board">
+      <span class="dot" id="dot-sensor"></span>
+      <span class="devname">microwave_sensor</span>
+      <span class="state" id="state-sensor">not connected</span>
+      <button id="connect-sensor">Connect</button>
+    </div>
+
+    <div class="board">
+      <span class="dot" id="dot-led"></span>
+      <span class="devname">microwave_receiver</span>
+      <span class="state" id="state-led">not connected</span>
+      <button id="connect-led">Connect</button>
+    </div>
+  </div>
+
+  <!-- ---- live plot ---- -->
+  <div class="card">
+    <div class="chart-head">
+      <h2>Delta from baseline</h2>
+      <span class="spacer"></span>
+      <span class="label">trigger line</span>
+      <input type="number" id="threshold" value="15" step="1" min="0">
+      <button id="chart-clear">clear</button>
+    </div>
+
+    <div class="chartwrap">
+      <canvas id="chart"></canvas>
+      <div class="tip" id="tip"></div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="sensors" id="sensors"></div>
+
+  <!-- ---- manual override ---- -->
+  <div class="card">
+    <h2>Manual control</h2>
+
+    <div class="manual-grid" id="manual-grid"></div>
+
+    <div class="manual-foot">
+      <button id="manual-all-red">all red</button>
+      <button id="manual-all-green">all green</button>
+      <span class="label">hold</span>
+      <input type="number" id="hold-secs" value="5" step="1" min="1" max="120">
+      <span class="label">s</span>
+      <span class="holdpill" id="holdpill">sensor in control</span>
+      <button id="manual-release">release now</button>
+    </div>
+  </div>
+
+  <div class="tests">
+    <span class="label">Not finding a board?</span>
+    <button id="scan-all">Show every device</button>
+    <button id="scan-any">UART devices only</button>
+  </div>
+
+  <div class="logwrap">
+    <div class="loghead">
+      <span class="label">Log</span>
+      <button id="clear-log">clear</button>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+</div>
+
+<script type="module">
+// ===========================================================================
+//  Relays sensor state from one Feather to another, via this page.
+//  A BLE peripheral can't talk to another peripheral, so the browser is the
+//  only thing that can hold both connections at once.
+// ===========================================================================
+
+const SENSOR_COUNT = 4
+const SENSOR_NAMES = ['A0', 'A1', 'A4', 'A5']
+const SERIES_VARS  = ['--series-1', '--series-2', '--series-3', '--series-4']
+
+const SENSOR_DEVICE   = 'microwave_sensor'
+const RECEIVER_DEVICE = 'microwave_receiver'
+
+const BLE_URL = 'https://lib.interactionmagic.com/modules/BLE.js'
+
+// Nordic UART Service - the same UUID the Feather's BLEUart advertises.
+const NUS_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e'
+
+// The receiver falls back to all-green after 6 s of silence, so while a manual
+// hold is running we must keep re-sending well inside that window.
+const KEEPALIVE_MS = 1500
+
+const HISTORY = 300          // samples kept; telemetry is 5/s, so ~60 s
+
+// Chart padding: room for y labels on the left, direct labels on the right.
+const PAD = { l: 46, r: 56, t: 12, b: 22 }
+
+// --- anything that throws would otherwise be invisible, so put it on the page
+
+window.addEventListener('error', (e) => showFatal(`Script error: ${e.message}`))
+window.addEventListener('unhandledrejection', (e) =>
+  showFatal(`Unhandled rejection: ${e.reason && e.reason.message}`))
+
+function showFatal(msg) {
+  try { log(msg, 'warn') } catch (_) {}
+  const p = document.createElement('pre')
+  p.style.cssText =
+    'background:#5c1a1a;color:#fff;padding:12px;margin:0 0 12px;' +
+    'white-space:pre-wrap;font:12px/1.5 monospace;border-radius:6px'
+  p.textContent = msg
+  if (document.body) document.body.prepend(p)
+}
+
+// ---------------------------------------------------------------------------
+
+const el = (id) => document.getElementById(id)
+
+let logEl = null
+let sensorBoard = null
+let ledBoard = null
+let blePromise = null
+let lastRelayed = null
+let lastSensorState = null
+const tiles = []
+const pairButtons = []
+const seriesColor = []
+
+// manual override
+let manualState = null
+let overrideUntil = 0
+
+// chart data
+const history = Array.from({ length: SENSOR_COUNT }, () => [])
+let hoverIndex = -1
+let canvas = null
+let ctx = null
+
+function log(msg, kind = '') {
+  if (!logEl) return
+  const row = document.createElement('div')
+  row.className = kind
+  row.textContent = `${new Date().toLocaleTimeString()}  ${msg}`
+  logEl.appendChild(row)
+  logEl.scrollTop = logEl.scrollHeight
+  while (logEl.children.length > 200) logEl.removeChild(logEl.firstChild)
+}
+
+function banner(html, kind = 'warn') {
+  const b = el('banner')
+  if (!b) return
+  b.className = `banner ${kind}`
+  b.innerHTML = html
+  b.hidden = false
+}
+
+// ---------------------------------------------------------------------------
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot)
+} else {
+  boot()
+}
+
+function boot() {
+  logEl = el('log')
+  log('page running', 'out')
+
+  readSeriesColors()
+  buildTiles()
+  buildManualButtons()
+  buildLegend()
+  initChart()
+  wireButtons()
+  runChecks()
+
+  setInterval(pollStatus, 2000)
+  setInterval(keepAlive, KEEPALIVE_MS)
+  setInterval(updateHoldPill, 200)
+
+  loadBLE().then(
+    ()    => log('Bluetooth module loaded', 'out'),
+    (err) => log(`Bluetooth module failed: ${err.message}`, 'warn')
+  )
+}
+
+function readSeriesColors() {
+  const cs = getComputedStyle(document.documentElement)
+  for (let i = 0; i < SENSOR_COUNT; i++) {
+    seriesColor[i] = cs.getPropertyValue(SERIES_VARS[i]).trim()
+  }
+}
+
+function buildTiles() {
+  const host = el('sensors')
+  for (let i = 0; i < SENSOR_COUNT; i++) {
+    const tile = document.createElement('div')
+    tile.className = 'tile'
+    tile.innerHTML = `
+      <div class="name">${SENSOR_NAMES[i]}</div>
+      <div class="delta">–</div>
+      <div class="pair">
+        <div class="led red"></div>
+        <div class="led green lit"></div>
+      </div>`
+    host.appendChild(tile)
+    tiles.push({
+      root:  tile,
+      delta: tile.querySelector('.delta'),
+      red:   tile.querySelector('.led.red'),
+      green: tile.querySelector('.led.green'),
+    })
+  }
+}
+
+function buildLegend() {
+  const host = el('legend')
+  for (let i = 0; i < SENSOR_COUNT; i++) {
+    const item = document.createElement('span')
+    item.className = 'item'
+    item.innerHTML = `
+      <span class="swatch" style="background:${seriesColor[i]}"></span>
+      <span class="label">${SENSOR_NAMES[i]}</span>
+      <span class="val">–</span>`
+    host.appendChild(item)
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  Manual control
+//
+//  The problem this solves: the sensor board re-sends its state on change and
+//  as a heartbeat every 2 s, so a manual command was being overwritten within
+//  a second or two. During a hold the page simply stops relaying sensor state
+//  and re-sends the manual state instead, then hands control back.
+// ---------------------------------------------------------------------------
+
+function buildManualButtons() {
+  const host = el('manual-grid')
+  for (let i = 0; i < SENSOR_COUNT; i++) {
+    const b = document.createElement('button')
+    b.className = 'pairbtn green'
+    b.innerHTML = `
+      <span class="who">${SENSOR_NAMES[i]} pair</span>
+      <span class="now">GREEN</span>`
+    b.addEventListener('click', () => togglePair(i))
+    host.appendChild(b)
+    pairButtons.push(b)
+  }
+}
+
+function holdMs() {
+  const secs = Number(el('hold-secs').value) || 5
+  return Math.max(1, secs) * 1000
+}
+
+function isOverriding() {
+  return Date.now() < overrideUntil
+}
+
+// The state the buttons act on: the manual one while holding, otherwise
+// whatever the sensor last reported, so a toggle starts from what you see.
+function currentBase() {
+  if (isOverriding() && manualState) return manualState
+  return lastSensorState || '0000'
+}
+
+function togglePair(i) {
+  const arr = currentBase().split('')
+  arr[i] = arr[i] === '1' ? '0' : '1'
+  setManual(arr.join(''))
+}
+
+function setManual(state) {
+  manualState = state
+  overrideUntil = Date.now() + holdMs()
+  pushToLeds(state)
+  showState(state)
+  updateHoldPill()
+  log(`manual → L:${state}  holding ${holdMs() / 1000}s`, 'out')
+}
+
+function releaseManual() {
+  if (!isOverriding()) return
+  overrideUntil = 0
+  manualState = null
+  log('manual released — sensor back in control', 'out')
+  if (lastSensorState) {
+    pushToLeds(lastSensorState)
+    showState(lastSensorState)
+  }
+  updateHoldPill()
+}
+
+// Re-send during a hold so the receiver's link timeout never trips, and hand
+// control back the moment the hold expires.
+let wasOverriding = false
+function keepAlive() {
+  const now = isOverriding()
+  if (now && manualState) {
+    pushToLeds(manualState)
+  } else if (wasOverriding && !now) {
+    manualState = null
+    log('hold expired — sensor back in control')
+    if (lastSensorState) {
+      pushToLeds(lastSensorState)
+      showState(lastSensorState)
+    }
+  }
+  wasOverriding = now
+}
+
+function updateHoldPill() {
+  const pill = el('holdpill')
+  if (isOverriding()) {
+    const left = ((overrideUntil - Date.now()) / 1000).toFixed(1)
+    pill.className = 'holdpill active'
+    pill.textContent = `manual · ${left}s`
+  } else {
+    pill.className = 'holdpill'
+    pill.textContent = 'sensor in control'
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  Status strip
+// ---------------------------------------------------------------------------
+
+function runChecks() {
+  const strip = el('checks')
+  const hasBT    = !!navigator.bluetooth
+  const inIframe = window.self !== window.top
+
+  strip.innerHTML = ''
+  addCheck(strip, 'Page', true, 'HTML and script are running')
+  addCheck(strip, 'Bluetooth', hasBT,
+    hasBT ? 'Web Bluetooth available' : 'no Web Bluetooth in this context')
+  addCheck(strip, 'Own tab', !inIframe,
+    inIframe ? 'inside a preview frame - Bluetooth is usually blocked here'
+             : 'top level page')
+
+  if (!hasBT && inIframe) {
+    banner(
+      `<b>Web Bluetooth is blocked inside the preview frame.</b><br>
+       Open the page in its own browser tab. Chrome or Edge only.`
+    )
+  } else if (!hasBT) {
+    banner(
+      `<b>This browser has no Web Bluetooth.</b><br>
+       Use Chrome or Edge — Safari and Firefox do not implement it.`
+    )
+  } else if (inIframe) {
+    banner(
+      `<b>Running inside a preview frame.</b><br>
+       If the device chooser doesn't appear when you press Connect, open the
+       page in its own tab.`,
+      'note'
+    )
+  }
+}
+
+function addCheck(strip, label, ok, detail) {
+  const s = document.createElement('span')
+  s.className = `check ${ok ? 'ok' : 'bad'}`
+  s.textContent = `${ok ? '✓' : '✕'} ${label}`
+  s.title = detail
+  strip.appendChild(s)
+}
+
+// ---------------------------------------------------------------------------
+//  Line buffering
+//
+//  onReceive fires once per BLE notification chunk, NOT once per line. A single
+//  message can arrive split across two callbacks, and two can arrive joined in
+//  one. So we accumulate and cut on newlines ourselves.
+// ---------------------------------------------------------------------------
+
+function lineBuffer(onLine) {
+  let buf = ''
+  return (chunk) => {
+    buf += chunk
+    let i
+    while ((i = buf.indexOf('\n')) !== -1) {
+      const line = buf.slice(0, i).trim()
+      buf = buf.slice(i + 1)
+      if (line) onLine(line)
+    }
+    if (buf.length > 256) buf = ''      // no newline in sight: resync
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  Display + relay
+// ---------------------------------------------------------------------------
+
+function showState(stateStr) {
+  for (let i = 0; i < SENSOR_COUNT && i < tiles.length; i++) {
+    const on = stateStr[i] === '1'
+    tiles[i].root.classList.toggle('on', on)
+    tiles[i].red.classList.toggle('lit', on)
+    tiles[i].green.classList.toggle('lit', !on)
+
+    const b = pairButtons[i]
+    if (b) {
+      b.className = `pairbtn ${on ? 'red' : 'green'}`
+      b.querySelector('.now').textContent = on ? 'RED' : 'GREEN'
+    }
+  }
+}
+
+function pushDeltas(values) {
+  for (let i = 0; i < SENSOR_COUNT; i++) {
+    const v = Number(values[i])
+    history[i].push(Number.isFinite(v) ? v : 0)
+    if (history[i].length > HISTORY) history[i].shift()
+    if (tiles[i]) tiles[i].delta.textContent = values[i]
+  }
+  updateLegend()
+  drawChart()
+}
+
+function updateLegend() {
+  const items = el('legend').querySelectorAll('.item .val')
+  for (let i = 0; i < SENSOR_COUNT; i++) {
+    const h = history[i]
+    if (items[i]) items[i].textContent = h.length ? h[h.length - 1].toFixed(1) : '–'
+  }
+}
+
+function setStatus(which, connected, text) {
+  el(`dot-${which}`).classList.toggle('live', connected)
+  el(`state-${which}`).textContent = text
+}
+
+// The single source of truth for "are we actually connected". Never infer it
+// from the fact that connect() returned without throwing - the wrapper can
+// resolve even when no link was established.
+function isLive(board) {
+  try {
+    return !!(board && typeof board.isConnected === 'function' && board.isConnected())
+  } catch (_) {
+    return false
+  }
+}
+
+function pollStatus() {
+  const check = (which, board) => {
+    if (!board) return
+    const live = isLive(board)
+    setStatus(which, live, live ? (board.getDeviceName() || 'connected')
+                                : 'not connected')
+  }
+  check('sensor', sensorBoard)
+  check('led', ledBoard)
+}
+
+function handleSensorLine(line) {
+  if (line.startsWith('S:')) {
+    const state = line.slice(2)
+    if (state.length !== SENSOR_COUNT) return
+
+    lastSensorState = state
+
+    // During a manual hold the sensor keeps reporting, and we keep listening -
+    // we just don't let it drive the LEDs.
+    if (!isOverriding()) {
+      showState(state)
+      pushToLeds(state)
+    }
+
+    if (state !== lastRelayed) {
+      log(`sensor state ${state}${isOverriding() ? ' (held back)' : ''}`, 'in')
+      lastRelayed = state
+    }
+
+  } else if (line.startsWith('D:')) {
+    pushDeltas(line.slice(2).split(','))
+
+  } else {
+    log(`sensor said: ${line}`)
+  }
+}
+
+function pushToLeds(state) {
+  if (!isLive(ledBoard)) return
+  ledBoard.send(`L:${state}\n`)     // send() adds no newline of its own
+}
+
+// ---------------------------------------------------------------------------
+//  Chart - rolling multi-line plot of the four deltas
+// ---------------------------------------------------------------------------
+
+function initChart() {
+  canvas = el('chart')
+  ctx = canvas.getContext('2d')
+
+  const resize = () => {
+    const dpr = window.devicePixelRatio || 1
+    const r = canvas.getBoundingClientRect()
+    canvas.width  = Math.max(1, Math.round(r.width  * dpr))
+    canvas.height = Math.max(1, Math.round(r.height * dpr))
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    drawChart()
+  }
+  window.addEventListener('resize', resize)
+  resize()
+
+  canvas.addEventListener('mousemove', onHover)
+  canvas.addEventListener('mouseleave', () => {
+    hoverIndex = -1
+    el('tip').style.display = 'none'
+    drawChart()
+  })
+
+  el('threshold').addEventListener('input', drawChart)
+  el('chart-clear').addEventListener('click', () => {
+    history.forEach((h) => (h.length = 0))
+    updateLegend()
+    drawChart()
+  })
+}
+
+function plotBox() {
+  const r = canvas.getBoundingClientRect()
+  return {
+    x: PAD.l,
+    y: PAD.t,
+    w: Math.max(10, r.width  - PAD.l - PAD.r),
+    h: Math.max(10, r.height - PAD.t - PAD.b),
+    W: r.width,
+    H: r.height,
+  }
+}
+
+function yRange() {
+  const thr = Number(el('threshold').value) || 0
+  let lo = 0, hi = thr * 1.4 || 10
+  for (const h of history) {
+    for (const v of h) {
+      if (v < lo) lo = v
+      if (v > hi) hi = v
+    }
+  }
+  const pad = (hi - lo) * 0.12 || 1
+  return { lo: lo - pad, hi: hi + pad }
+}
+
+function onHover(e) {
+  const box = plotBox()
+  const r = canvas.getBoundingClientRect()
+  const x = e.clientX - r.left
+  const n = history[0].length
+  if (n < 2 || x < box.x || x > box.x + box.w) {
+    hoverIndex = -1
+    el('tip').style.display = 'none'
+    drawChart()
+    return
+  }
+  hoverIndex = Math.round(((x - box.x) / box.w) * (n - 1))
+  hoverIndex = Math.max(0, Math.min(n - 1, hoverIndex))
+  drawChart()
+
+  const tip = el('tip')
+  const rows = history.map((h, i) =>
+    `<div class="row">
+       <span class="swatch" style="background:${seriesColor[i]}"></span>
+       <span>${SENSOR_NAMES[i]}</span>
+       <b>${(h[hoverIndex] ?? 0).toFixed(1)}</b>
+     </div>`).join('')
+  const ago = ((n - 1 - hoverIndex) * 0.2).toFixed(1)
+  tip.innerHTML = `<div style="color:#878e9c;margin-bottom:4px">${ago}s ago</div>${rows}`
+  tip.style.display = 'block'
+
+  const tw = tip.offsetWidth
+  const px = box.x + (hoverIndex / (n - 1)) * box.w
+  tip.style.left = `${Math.min(Math.max(0, px + 12), box.W - tw - 2)}px`
+  tip.style.top = `${box.y + 6}px`
+}
+
+function drawChart() {
+  if (!ctx) return
+  const box = plotBox()
+  const { lo, hi } = yRange()
+  const thr = Number(el('threshold').value) || 0
+  const n = history[0].length
+
+  const yPix = (v) => box.y + box.h - ((v - lo) / (hi - lo)) * box.h
+  const xPix = (i) => box.x + (n < 2 ? 0 : (i / (n - 1)) * box.w)
+
+  ctx.clearRect(0, 0, box.W, box.H)
+
+  // --- grid: recessive, four steps
+  ctx.strokeStyle = '#2b2f39'
+  ctx.fillStyle = '#878e9c'
+  ctx.lineWidth = 1
+  ctx.font = '11px ui-monospace, Menlo, monospace'
+  ctx.textAlign = 'right'
+  ctx.textBaseline = 'middle'
+
+  for (let g = 0; g <= 4; g++) {
+    const v = lo + ((hi - lo) * g) / 4
+    const y = Math.round(yPix(v)) + 0.5
+    ctx.beginPath()
+    ctx.moveTo(box.x, y)
+    ctx.lineTo(box.x + box.w, y)
+    ctx.stroke()
+    ctx.fillText(v.toFixed(0), box.x - 8, y)
+  }
+
+  // --- zero line, slightly stronger than the grid
+  if (lo < 0 && hi > 0) {
+    ctx.strokeStyle = '#3c414d'
+    const y = Math.round(yPix(0)) + 0.5
+    ctx.beginPath()
+    ctx.moveTo(box.x, y)
+    ctx.lineTo(box.x + box.w, y)
+    ctx.stroke()
+  }
+
+  // --- trigger reference line: dashed, in muted ink, never a series colour
+  if (thr > lo && thr < hi) {
+    ctx.save()
+    ctx.setLineDash([4, 4])
+    ctx.strokeStyle = '#878e9c'
+    const y = Math.round(yPix(thr)) + 0.5
+    ctx.beginPath()
+    ctx.moveTo(box.x, y)
+    ctx.lineTo(box.x + box.w, y)
+    ctx.stroke()
+    ctx.restore()
+    // Label sits inside the plot, above the line - the right-hand gutter is
+    // reserved for the series' own direct labels.
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'bottom'
+    ctx.fillStyle = '#878e9c'
+    ctx.fillText('trigger', box.x + 4, y - 3)
+    ctx.textBaseline = 'middle'
+  }
+
+  if (n === 0) {
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#878e9c'
+    ctx.fillText('waiting for data from microwave_sensor…',
+                 box.x + box.w / 2, box.y + box.h / 2)
+    return
+  }
+
+  // --- crosshair, under the lines
+  if (hoverIndex >= 0) {
+    ctx.strokeStyle = '#4a4f5c'
+    const x = Math.round(xPix(hoverIndex)) + 0.5
+    ctx.beginPath()
+    ctx.moveTo(x, box.y)
+    ctx.lineTo(x, box.y + box.h)
+    ctx.stroke()
+  }
+
+  // --- the four series, 2px
+  ctx.lineWidth = 2
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+
+  history.forEach((h, i) => {
+    if (h.length < 2) return
+    ctx.strokeStyle = seriesColor[i]
+    ctx.beginPath()
+    h.forEach((v, j) => {
+      const x = xPix(j), y = yPix(v)
+      j ? ctx.lineTo(x, y) : ctx.moveTo(x, y)
+    })
+    ctx.stroke()
+  })
+
+  // --- direct labels at the live end: a coloured dot carries identity, the
+  //     text stays in text ink
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'middle'
+  const placed = []
+  history.forEach((h, i) => {
+    if (!h.length) return
+    let y = yPix(h[h.length - 1])
+    while (placed.some((p) => Math.abs(p - y) < 12)) y += 12   // avoid collisions
+    placed.push(y)
+
+    ctx.fillStyle = seriesColor[i]
+    ctx.beginPath()
+    ctx.arc(box.x + box.w + 8, y, 4, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.fillStyle = '#e6e8ec'
+    ctx.fillText(SENSOR_NAMES[i], box.x + box.w + 16, y)
+  })
+
+  // --- hover markers on top
+  if (hoverIndex >= 0) {
+    history.forEach((h, i) => {
+      if (!h.length) return
+      const x = xPix(hoverIndex), y = yPix(h[hoverIndex] ?? 0)
+      ctx.fillStyle = '#1d2027'          // surface ring keeps overlaps readable
+      ctx.beginPath(); ctx.arc(x, y, 5.5, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = seriesColor[i]
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill()
+    })
+  }
+
+  // --- x axis labels
+  ctx.textAlign = 'left'
+  ctx.fillStyle = '#878e9c'
+  ctx.fillText(`−${((n - 1) * 0.2).toFixed(0)}s`, box.x, box.y + box.h + 12)
+  ctx.textAlign = 'right'
+  ctx.fillText('now', box.x + box.w, box.y + box.h + 12)
+}
+
+// ---------------------------------------------------------------------------
+//  Bluetooth wrapper
+// ---------------------------------------------------------------------------
+
+function loadBLE() {
+  if (!blePromise) {
+    blePromise = import(BLE_URL).then((mod) => mod.default || mod.BLE || mod)
+  }
+  return blePromise
+}
+
+async function getBoard(which, noFilter = false) {
+  const BLE = await loadBLE()
+
+  const opts = { services: ['uart'] }
+
+  // namePrefix is passed twice, top level and inside filters, because the
+  // wrapper's docs and the reference pen disagree about where it goes.
+  if (!noFilter) {
+    const prefix = which === 'sensor' ? SENSOR_DEVICE : RECEIVER_DEVICE
+    opts.namePrefix = prefix
+    opts.filters = { namePrefix: prefix }
+  }
+
+  if (which === 'sensor') {
+    sensorBoard = new BLE({
+      ...opts,
+      onReceive: lineBuffer(handleSensorLine),
+      onDisconnect: () => {
+        setStatus('sensor', false, 'not connected')
+        log('sensor board disconnected', 'warn')
+      },
+    })
+    return sensorBoard
+  }
+
+  ledBoard = new BLE({
+    ...opts,
+    onReceive: lineBuffer((line) => log(`receiver: ${line}`)),
+    onDisconnect: () => {
+      setStatus('led', false, 'not connected')
+      log('receiver disconnected', 'warn')
+    },
+  })
+  return ledBoard
+}
+
+// ---------------------------------------------------------------------------
+//  Raw scan - no filters, no wrapper
+// ---------------------------------------------------------------------------
+
+async function scanEverything() {
+  if (!navigator.bluetooth) {
+    return log('No Web Bluetooth in this context — see the banner above', 'warn')
+  }
+
+  log('opening the chooser with NO filters — every device in range should list…')
+
+  let device
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [NUS_SERVICE],
+    })
+  } catch (err) {
+    if (err.name === 'NotFoundError') {
+      log('chooser closed, or it listed nothing at all', 'warn')
+      log('An empty chooser here means Chrome cannot see ANY device. On macOS ' +
+          'that is usually the Bluetooth permission: System Settings → ' +
+          'Privacy & Security → Bluetooth → enable Chrome.', 'warn')
+    } else {
+      log(`raw scan: ${err.name} — ${err.message}`, 'warn')
+    }
+    return
+  }
+
+  log(`picked: name="${device.name || '(no name)'}"`, 'in')
+  log(`        id=${device.id}`)
+
+  try {
+    log('connecting to GATT…')
+    const server = await device.gatt.connect()
+    log('GATT connected', 'out')
+
+    const services = await server.getPrimaryServices()
+    if (services.length === 0) {
+      log('no readable services (none were listed in optionalServices)', 'warn')
+    }
+    services.forEach((s) => {
+      const isUart = s.uuid.toLowerCase() === NUS_SERVICE
+      log(`   service ${s.uuid}${isUart ? '   ← Nordic UART, this is a Feather' : ''}`,
+          isUart ? 'out' : '')
+    })
+
+    device.gatt.disconnect()
+    log('disconnected again — that was only a probe')
+  } catch (err) {
+    log(`GATT: ${err.name} — ${err.message}`, 'warn')
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  Buttons - never disabled. A greyed out button with no explanation is worse
+//  than a button that tells you what went wrong when you press it.
+// ---------------------------------------------------------------------------
+
+function wireButtons() {
+  const on = (id, fn) => el(id).addEventListener('click', fn)
+
+  on('connect-sensor', () => connect('sensor', SENSOR_DEVICE))
+  on('connect-led',    () => connect('led',    RECEIVER_DEVICE))
+
+  on('manual-all-red',   () => setManual('1111'))
+  on('manual-all-green', () => setManual('0000'))
+  on('manual-release',   releaseManual)
+
+  on('scan-all', scanEverything)
+  on('scan-any', () => connect('sensor', 'any UART device', true))
+
+  on('clear-log', () => { logEl.innerHTML = '' })
+}
+
+async function connect(which, deviceName, noFilter = false) {
+  if (!navigator.bluetooth) {
+    return log('No Web Bluetooth in this context — see the banner above', 'warn')
+  }
+
+  const existing = which === 'sensor' ? sensorBoard : ledBoard
+  if (isLive(existing)) {
+    return log(`${deviceName} is already connected`, 'out')
+  }
+
+  log(noFilter ? 'scanning for any UART device…' : `looking for ${deviceName}…`)
+
+  try {
+    const board = await getBoard(which, noFilter)
+    await board.connect()
+
+    if (!isLive(board)) {
+      setStatus(which, false, 'not connected')
+      log(`${deviceName}: no link established (chooser closed, or the ` +
+          `connection dropped immediately)`, 'warn')
+      return
+    }
+
+    const name = board.getDeviceName()
+    setStatus(which, true, name || 'connected')
+    log(`connected to ${name || 'unnamed device'}`, 'out')
+
+    if (noFilter) {
+      log(`^ that is the name the board is actually advertising. If it ` +
+          `isn't "${SENSOR_DEVICE}", the sketch on the board is not the one ` +
+          `you think it is.`, 'in')
+    }
+
+  } catch (err) {
+    setStatus(which, false, 'not connected')
+    log(`${deviceName}: ${err.name || 'error'} — ${err.message}`, 'warn')
+
+    if (err.name === 'NotFoundError') {
+      log('NotFoundError means the chooser found nothing matching, or you ' +
+          'closed it. Try "Show every device".', 'warn')
+    }
+    if (err.name === 'SecurityError' || /permission|policy/i.test(err.message)) {
+      banner(
+        `<b>Bluetooth permission denied by the frame.</b><br>
+         Open the page in its own browser tab rather than an editor preview.`
+      )
+    }
+  }
+}
+</script>
+
+</body>
+</html>
